@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CricketZone — Local Club Live Scores</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- LOGIN MODAL -->
+<div id="loginModal" class="modal-overlay hidden">
+  <div class="modal-box login-box">
+    <div class="modal-close" onclick="closeLogin()">✕</div>
+    <div class="login-logo">🏏</div>
+    <h2>Admin Login</h2>
+    <p class="login-sub">CricketZone Control Panel</p>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="admin" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="••••••••" />
+    </div>
+    <div id="loginError" class="login-error hidden">Invalid credentials</div>
+    <button class="btn-primary full-width" onclick="doLogin()">Login</button>
+  </div>
+</div>
+
+<!-- ADD/EDIT MATCH MODAL -->
+<div id="matchModal" class="modal-overlay hidden">
+  <div class="modal-box wide-box">
+    <div class="modal-close" onclick="closeMatchModal()">✕</div>
+    <h2 id="matchModalTitle">Add New Match</h2>
+    <input type="hidden" id="editMatchId"/>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Team A</label>
+        <select id="mTeamA"></select>
+      </div>
+      <div class="form-group">
+        <label>Team B</label>
+        <select id="mTeamB"></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="mDate"/>
+      </div>
+      <div class="form-group">
+        <label>Venue</label>
+        <input type="text" id="mVenue" placeholder="Ground name"/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Match Type</label>
+        <select id="mType">
+          <option value="T20">T20</option>
+          <option value="ODI">ODI (50 overs)</option>
+          <option value="T10">T10</option>
+          <option value="Club40">Club 40</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="mStatus">
+          <option value="upcoming">Upcoming</option>
+          <option value="live">Live</option>
+          <option value="completed">Completed</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Result / Notes</label>
+      <input type="text" id="mResult" placeholder="e.g. Team A won by 5 wickets"/>
+    </div>
+    <button class="btn-primary full-width" onclick="saveMatch()">Save Match</button>
+  </div>
+</div>
+
+<!-- ADD/EDIT TEAM MODAL -->
+<div id="teamModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-close" onclick="closeTeamModal()">✕</div>
+    <h2 id="teamModalTitle">Add New Team</h2>
+    <input type="hidden" id="editTeamId"/>
+    <div class="form-group">
+      <label>Team Name</label>
+      <input type="text" id="tName" placeholder="e.g. Thunder XI"/>
+    </div>
+    <div class="form-group">
+      <label>Short Code</label>
+      <input type="text" id="tCode" placeholder="e.g. THX" maxlength="5"/>
+    </div>
+    <div class="form-group">
+      <label>Home Ground</label>
+      <input type="text" id="tGround" placeholder="Ground name"/>
+    </div>
+    <div class="form-group">
+      <label>Captain</label>
+      <input type="text" id="tCaptain" placeholder="Captain name"/>
+    </div>
+    <div class="form-group">
+      <label>Team Color</label>
+      <input type="color" id="tColor" value="#e63946"/>
+    </div>
+    <button class="btn-primary full-width" onclick="saveTeam()">Save Team</button>
+  </div>
+</div>
+
+<!-- ADD/EDIT PLAYER MODAL -->
+<div id="playerModal" class="modal-overlay hidden">
+  <div class="modal-box wide-box">
+    <div class="modal-close" onclick="closePlayerModal()">✕</div>
+    <h2 id="playerModalTitle">Add New Player</h2>
+    <input type="hidden" id="editPlayerId"/>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Player Name</label>
+        <input type="text" id="pName" placeholder="Full name"/>
+      </div>
+      <div class="form-group">
+        <label>Team</label>
+        <select id="pTeam"></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Role</label>
+        <select id="pRole">
+          <option value="Batsman">Batsman</option>
+          <option value="Bowler">Bowler</option>
+          <option value="All-Rounder">All-Rounder</option>
+          <option value="Wicketkeeper">Wicketkeeper</option>
+          <option value="WK-Batsman">WK-Batsman</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Jersey Number</label>
+        <input type="number" id="pJersey" placeholder="#" min="1" max="99"/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Batting Style</label>
+        <select id="pBat">
+          <option value="Right-Hand">Right-Hand Bat</option>
+          <option value="Left-Hand">Left-Hand Bat</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Bowling Style</label>
+        <select id="pBowl">
+          <option value="Right-Arm Fast">Right-Arm Fast</option>
+          <option value="Right-Arm Medium">Right-Arm Medium</option>
+          <option value="Right-Arm Off-Spin">Right-Arm Off-Spin</option>
+          <option value="Right-Arm Leg-Spin">Right-Arm Leg-Spin</option>
+          <option value="Left-Arm Fast">Left-Arm Fast</option>
+          <option value="Left-Arm Medium">Left-Arm Medium</option>
+          <option value="Left-Arm Spin">Left-Arm Spin</option>
+          <option value="N/A">N/A (non-bowler)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Age</label>
+        <input type="number" id="pAge" placeholder="Age" min="10" max="70"/>
+      </div>
+      <div class="form-group">
+        <label>Contact</label>
+        <input type="text" id="pContact" placeholder="Phone / Email"/>
+      </div>
+    </div>
+    <button class="btn-primary full-width" onclick="savePlayer()">Save Player</button>
+  </div>
+</div>
+
+<!-- LIVE SCORE EDITOR MODAL -->
+<div id="liveModal" class="modal-overlay hidden">
+  <div class="modal-box ultra-wide">
+    <div class="modal-close" onclick="closeLiveModal()">✕</div>
+    <h2 id="liveModalTitle">Live Score Manager</h2>
+    <input type="hidden" id="liveMatchId"/>
+
+    <div class="live-editor-grid">
+      <!-- Batting Section -->
+      <div class="live-section">
+        <h3 class="section-label">🏏 Batting</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Batting Team</label>
+            <select id="lBattingTeam" onchange="updateBattingPlayers()"></select>
+          </div>
+          <div class="form-group">
+            <label>Score</label>
+            <input type="text" id="lScore" placeholder="e.g. 124/3"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Overs</label>
+            <input type="text" id="lOvers" placeholder="e.g. 14.3"/>
+          </div>
+          <div class="form-group">
+            <label>Run Rate</label>
+            <input type="text" id="lRR" placeholder="e.g. 8.65"/>
+          </div>
+        </div>
+
+        <div class="batsman-row">
+          <div class="batsman-card" id="bat1Card">
+            <div class="bat-label">Opener 1 <span class="bat-badge">★</span></div>
+            <select id="lBat1"></select>
+            <div class="form-row tight">
+              <input type="number" id="lBat1Runs" placeholder="Runs" min="0"/>
+              <input type="number" id="lBat1Balls" placeholder="Balls" min="0"/>
+              <input type="number" id="lBat1Fours" placeholder="4s" min="0"/>
+              <input type="number" id="lBat1Sixes" placeholder="6s" min="0"/>
+            </div>
+          </div>
+          <button class="swap-btn" onclick="swapBatsmen()" title="Swap strike">
+            ⇆ SWAP
+          </button>
+          <div class="batsman-card" id="bat2Card">
+            <div class="bat-label">Opener 2</div>
+            <select id="lBat2"></select>
+            <div class="form-row tight">
+              <input type="number" id="lBat2Runs" placeholder="Runs" min="0"/>
+              <input type="number" id="lBat2Balls" placeholder="Balls" min="0"/>
+              <input type="number" id="lBat2Fours" placeholder="4s" min="0"/>
+              <input type="number" id="lBat2Sixes" placeholder="6s" min="0"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bowling Section -->
+      <div class="live-section">
+        <h3 class="section-label">🎯 Bowling</h3>
+        <div class="form-group">
+          <label>Current Bowler</label>
+          <select id="lBowler" onchange="updateBowlerOvers()"></select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Overs Bowled</label>
+            <input type="text" id="lBowlerOvers" placeholder="e.g. 3.2"/>
+          </div>
+          <div class="form-group">
+            <label>Runs Given</label>
+            <input type="number" id="lBowlerRuns" placeholder="Runs" min="0"/>
+          </div>
+          <div class="form-group">
+            <label>Wickets</label>
+            <input type="number" id="lBowlerWickets" placeholder="Wkts" min="0" max="10"/>
+          </div>
+        </div>
+
+        <div class="over-section">
+          <h4>This Over — Ball-by-Ball</h4>
+          <div class="form-group">
+            <label>Balls (comma-separated: 1,4,0,W,2,6,NB,WD)</label>
+            <input type="text" id="lOverBalls" placeholder="1,4,0,W,2" oninput="renderBallPreview()"/>
+          </div>
+          <div id="ballPreview" class="ball-preview"></div>
+          <div class="quick-balls">
+            <span class="qb-label">Quick-add ball outcome:</span>
+            <div class="qb-buttons">
+              <button class="qb-btn dot" onclick="addBall('0')">0</button>
+              <button class="qb-btn one" onclick="addBall('1')">1</button>
+              <button class="qb-btn two" onclick="addBall('2')">2</button>
+              <button class="qb-btn three" onclick="addBall('3')">3</button>
+              <button class="qb-btn four" onclick="addBall('4')">4</button>
+              <button class="qb-btn six" onclick="addBall('6')">6</button>
+              <button class="qb-btn wicket" onclick="addBall('W')">W</button>
+              <button class="qb-btn nb" onclick="addBall('NB')">NB</button>
+              <button class="qb-btn wd" onclick="addBall('WD')">WD</button>
+              <button class="qb-btn undo" onclick="undoBall()">↩</button>
+            </div>
+          </div>
+          <div id="remainingBalls" class="remaining-balls"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary full-width" onclick="saveLiveScore()">💾 Save & Broadcast Live Score</button>
+  </div>
+</div>
+
+<!-- NEWS MODAL -->
+<div id="newsModal" class="modal-overlay hidden">
+  <div class="modal-box wide-box">
+    <div class="modal-close" onclick="closeNewsModal()">✕</div>
+    <h2 id="newsModalTitle">Add News</h2>
+    <input type="hidden" id="editNewsId"/>
+    <div class="form-group">
+      <label>Headline</label>
+      <input type="text" id="nTitle" placeholder="News headline"/>
+    </div>
+    <div class="form-group">
+      <label>Body</label>
+      <textarea id="nBody" rows="5" placeholder="Full news content..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="nCat">
+        <option value="Match Report">Match Report</option>
+        <option value="Selection">Selection</option>
+        <option value="Tournament">Tournament</option>
+        <option value="General">General</option>
+      </select>
+    </div>
+    <button class="btn-primary full-width" onclick="saveNews()">Publish News</button>
+  </div>
+</div>
+
+<!-- ===== MAIN SITE ===== -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <span class="brand-icon">🏏</span>
+      <div>
+        <div class="brand-name">CricketZone</div>
+        <div class="brand-sub">Local Club Live Scores</div>
+      </div>
+    </div>
+    <nav class="main-nav">
+      <a onclick="showSection('live')" class="nav-link active" data-sec="live">Live Scores</a>
+      <a onclick="showSection('matches')" class="nav-link" data-sec="matches">Matches</a>
+      <a onclick="showSection('teams')" class="nav-link" data-sec="teams">Teams</a>
+      <a onclick="showSection('players')" class="nav-link" data-sec="players">Players</a>
+      <a onclick="showSection('news')" class="nav-link" data-sec="news">News</a>
+    </nav>
+    <div class="header-actions">
+      <div id="refreshBadge" class="refresh-badge">🔄 <span id="refreshCountdown">30</span>s</div>
+      <div id="adminBadge" class="admin-badge hidden">👑 Admin</div>
+      <button id="loginBtn" class="btn-outline" onclick="openLogin()">Admin Login</button>
+      <button id="logoutBtn" class="btn-outline hidden" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+</header>
+
+<main class="site-main">
+
+  <!-- LIVE SCORES SECTION -->
+  <section id="sec-live" class="section active">
+    <div class="section-header">
+      <h1>Live Scores</h1>
+      <div class="live-indicator"><span class="live-dot"></span> LIVE</div>
+    </div>
+    <div id="liveScoreCards" class="score-grid"></div>
+    <div id="noLive" class="empty-state hidden">
+      <div class="empty-icon">🏟️</div>
+      <p>No live matches right now</p>
+    </div>
+  </section>
+
+  <!-- MATCHES SECTION -->
+  <section id="sec-matches" class="section hidden">
+    <div class="section-header">
+      <h1>All Matches</h1>
+      <div class="section-actions">
+        <div class="filter-tabs">
+          <button class="filter-tab active" onclick="filterMatches('all', this)">All</button>
+          <button class="filter-tab" onclick="filterMatches('live', this)">Live</button>
+          <button class="filter-tab" onclick="filterMatches('upcoming', this)">Upcoming</button>
+          <button class="filter-tab" onclick="filterMatches('completed', this)">Completed</button>
+        </div>
+        <button id="addMatchBtn" class="btn-accent hidden" onclick="openMatchModal()">+ Add Match</button>
+      </div>
+    </div>
+    <div id="matchCards" class="match-grid"></div>
+  </section>
+
+  <!-- TEAMS SECTION -->
+  <section id="sec-teams" class="section hidden">
+    <div class="section-header">
+      <h1>Teams</h1>
+      <button id="addTeamBtn" class="btn-accent hidden" onclick="openTeamModal()">+ Add Team</button>
+    </div>
+    <div id="teamCards" class="teams-grid"></div>
+  </section>
+
+  <!-- PLAYERS SECTION -->
+  <section id="sec-players" class="section hidden">
+    <div class="section-header">
+      <h1>Players</h1>
+      <div class="section-actions">
+        <input type="text" id="playerSearch" placeholder="Search players..." oninput="renderPlayers()" class="search-input"/>
+        <select id="playerTeamFilter" onchange="renderPlayers()" class="filter-select">
+          <option value="">All Teams</option>
+        </select>
+        <button id="addPlayerBtn" class="btn-accent hidden" onclick="openPlayerModal()">+ Add Player</button>
+      </div>
+    </div>
+    <div id="playerCards" class="players-grid"></div>
+  </section>
+
+  <!-- NEWS SECTION -->
+  <section id="sec-news" class="section hidden">
+    <div class="section-header">
+      <h1>News & Updates</h1>
+      <button id="addNewsBtn" class="btn-accent hidden" onclick="openNewsModal()">+ Add News</button>
+    </div>
+    <div id="newsCards" class="news-grid"></div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div>CricketZone © 2025 · Local Club Cricket</div>
+  <div id="lastUpdated" class="last-updated"></div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
