@@ -1,7 +1,7 @@
 /* ===== CRICKETZONE — APP.JS ===== */
 
 // ===== AUTH =====
-const ADMIN_CREDS = { user: 'admin'|| 'user1', pass: 'cricket2025' };
+const ADMIN_CREDS = { user: 'admin', pass: 'cricket2025' };
 let isAdmin = false;
 
 function openLogin() { document.getElementById('loginModal').classList.remove('hidden'); }
